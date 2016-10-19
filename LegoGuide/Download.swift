@@ -8,16 +8,24 @@
 
 import Foundation
 
-class Download: NSObject {
+class DownloadInfo: NSObject {
 
     var url: String
     var isDownloading = false
     var progress: Float = 0.0
 
-    var downloadTask: URLSessionDownloadTask?
+    var downloadTask: URLSessionDownloadTask!
     var resumeData: Data?
+    
+    
+    
+    
 
     init(url: String) {
         self.url = url
+        print("url ==>",url )
+        print("isDownloading ==>",isDownloading)
+        print("progress ==>",progress)
+        
     }
 }

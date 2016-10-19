@@ -9,8 +9,9 @@
 import UIKit
 import MediaPlayer
 
+
 class SearchViewController: UIViewController {
-    var activeDownloads = [String: Download]()
+    var activeDownloads = [String: DownloadInfo]()
 
     // 1
     let defaultSession = URLSession(configuration: .default)
@@ -18,6 +19,7 @@ class SearchViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var searchBar: UISearchBar!
+    @IBOutlet weak var pdfView: UIWebView!
 
     var searchResults = [Track]()
 
@@ -36,6 +38,7 @@ class SearchViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         tableView.tableFooterView = UIView()
         _ = self.downloadsSession
     }
@@ -51,15 +54,48 @@ class SearchViewController: UIViewController {
         searchResults.removeAll()
         do {
             if let data = data, let response = try JSONSerialization.jsonObject(with: data, options:JSONSerialization.ReadingOptions(rawValue:0)) as? [String: AnyObject] {
-
+                
+                print("response products ==>",response["products"])
+                
                 // Get the results array
-                if let array: AnyObject = response["results"] {
+                if let array: AnyObject = response["products"] {
                     for trackDictonary in array as! [AnyObject] {
-                        if let trackDictonary = trackDictonary as? [String: AnyObject], let previewUrl = trackDictonary["previewUrl"] as? String {
+                        //if let trackDictonary = trackDictonary as? [String: AnyObject], let previewUrl = trackDictonary["previewUrl"] as? String {
+                        if let trackDictonary = trackDictonary as? [String: AnyObject], let productImage = trackDictonary["productImage"] as? String {
+
                             // Parse the search result
-                            let name = trackDictonary["trackName"] as? String
-                            let artist = trackDictonary["artistName"] as? String
-                            searchResults.append(Track(name: name, artist: artist, previewUrl: previewUrl))
+                            //let name = trackDictonary["trackName"] as? String
+                            //let artist = trackDictonary["artistName"] as? String
+                            //searchResults.append(Track(name: name, artist: artist, previewUrl: previewUrl))
+                            
+                            let name = trackDictonary["productName"] as? String
+                            let productid = trackDictonary["productId"] as? String
+                            let themeName = trackDictonary["themeName"] as? String
+                            let launchYear = trackDictonary["launchYear"] as? Int
+                            
+                            let buildingInstructions : NSArray = (trackDictonary["buildingInstructions"] as! NSArray)
+                            
+                            print("name ==>",name)
+                            print("productid ==>",productid)
+                            print("productImage ==>",productImage)
+                            print("themeName ==>",themeName)
+                            print("launchYear ==>",launchYear)
+                            
+                            //let staticURL = "https://www.openssl.org/source/openssl-1.0.2j.tar.gz"
+                            //let staticURL = "http://www.pjsip.org/release/2.5.5/pjproject-2.5.5.zip"
+                            //let staticURL = "https://124.11.70.22/StarWars.tar.gz"
+                            for subDictonary in buildingInstructions as [AnyObject] {
+                                if let subDictonary = subDictonary as? [String: AnyObject], let pdfLocation = subDictonary["pdfLocation"] as? String {
+                                    let downloadSize = subDictonary["downloadSize"] as? String
+                                    print("pdfLocation ==>",pdfLocation)
+                                    print("downloadSize ==>",downloadSize)
+                                    //searchResults.append(Track(name: name, previewUrl: pdfLocation, productid: productid))
+                                    searchResults.append(Track(name: name, previewUrl: pdfLocation, productid: productid))
+
+                                }else{
+                                    print("subData NOT a dictonary")
+                                }
+                            }    
                         } else {
                             print("Not a dictionary")
                         }
@@ -92,16 +128,18 @@ class SearchViewController: UIViewController {
     // Called when the Download button for a track is tapped
     func startDownload(track: Track) {
         if let urlString = track.previewUrl, let url =  URL(string: urlString) {
+            print("download url ==>",url)
             // 1
-            let download = Download(url: urlString)
+            let download = DownloadInfo(url: urlString)
             // 2
             download.downloadTask = downloadsSession.downloadTask(with: url)
             // 3
             download.downloadTask!.resume()
             // 4
             download.isDownloading = true
+            print("download progress ==>",download.isDownloading)
             // 5
-            activeDownloads[download.url] = download
+            activeDownloads[download.url] = download            
         }
     }
 
@@ -146,10 +184,38 @@ class SearchViewController: UIViewController {
     }
 
     // This method attempts to play the local file (if it exists) when the cell is tapped
+    /*
     func playDownload(track: Track) {
         if let urlString = track.previewUrl, let url = localFilePathForUrl(previewUrl: urlString) {
             let moviePlayer: MPMoviePlayerViewController! = MPMoviePlayerViewController(contentURL: url)
             presentMoviePlayerViewControllerAnimated(moviePlayer)
+        }
+    }
+    */
+     
+    //This method attempts to show the local pdf file (if it exists) when the call is tapped
+    func showDownload(track: Track){
+        if let urlString = track.previewUrl, let url = localFilePathForUrl(previewUrl: urlString) {
+            print("urlString ==>",urlString)
+            print("url  ==>",url)
+            let lastPathComponent = url.lastPathComponent
+            let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as NSString
+            let fullPath = documentsPath.appendingPathComponent(lastPathComponent)
+            print("2.lastPathComponent ==> ",lastPathComponent)
+            print("2.fullPath ==> ",fullPath)
+            
+            let request = URLRequest(url: url)
+            print("request ==>",request)
+            
+            pdfView.loadRequest(request)
+            
+            super.view.bringSubview(toFront: pdfView)
+            
+            
+            
+            
+
+            
         }
     }
 
@@ -160,10 +226,12 @@ class SearchViewController: UIViewController {
     // to the path of the app’s Documents directory.
     func localFilePathForUrl(previewUrl: String) -> URL? {
         let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as NSString
-
+        print("documentsPath ==>",documentsPath )
         if let url = URL(string: previewUrl) {
             let lastPathComponent = url.lastPathComponent
             let fullPath = documentsPath.appendingPathComponent(lastPathComponent)
+            print("lastPathComponent ==> ",lastPathComponent)
+            print("fullPath ==> ",fullPath)
             return URL(fileURLWithPath:fullPath)
         }
 
@@ -192,6 +260,8 @@ class SearchViewController: UIViewController {
     }
 }
 
+
+
 // MARK: - NSURLSessionDelegate
 
 extension SearchViewController: URLSessionDelegate {
@@ -211,6 +281,8 @@ extension SearchViewController: URLSessionDelegate {
 // MARK: - NSURLSessionDownloadDelegate
 
 extension SearchViewController: URLSessionDownloadDelegate {
+    
+    
 
     public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         // 1
@@ -286,7 +358,7 @@ extension SearchViewController: UISearchBarDelegate {
                 print(searchTerm)
 
                 // 4
-                let url = URL(string: "https://itunes.apple.com/search?media=music&entity=song&term=\(searchTerm)")
+                let url = URL(string: "https://wwwsecure.us.lego.com//service/biservice/search?fromIndex=0&locale=en-US&onlyAlternatives=false&prefixText=\(searchTerm)")
 
                 print(url)
 
@@ -378,9 +450,10 @@ extension SearchViewController: UITableViewDataSource {
 
         let track = searchResults[indexPath.row]
 
-        // Configure title and artist labels
+        // Configure title and productid labels
         cell.titleLabel.text = track.name
-        cell.artistLabel.text = track.artist
+        
+        cell.productidLabel.text = track.productid
 
         var showDownloadControls = false
         if let download = activeDownloads[track.previewUrl!] {
@@ -420,7 +493,8 @@ extension SearchViewController: UITableViewDelegate {
         let track = searchResults[indexPath.row]
 
         if localFileExistsForTrack(track: track) {
-            playDownload(track: track)
+            //playDownload(track: track)
+            showDownload(track: track)
         }
 
         tableView.deselectRow(at: indexPath, animated: true)

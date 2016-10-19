@@ -25,7 +25,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: @escaping () -> Void) {
         backgroundSessionCompletionHandler = completionHandler
     }
-
     private func customizeAppearance() {
         window?.tintColor = tintColor
         UISearchBar.appearance().barTintColor = tintColor

@@ -20,7 +20,9 @@ class TrackCell: UITableViewCell {
     var delegate: TrackCellDelegate?
 
     @IBOutlet weak var titleLabel: UILabel!
-    @IBOutlet weak var artistLabel: UILabel!
+
+    @IBOutlet weak var productidLabel: UILabel!
+
     @IBOutlet weak var progressView: UIProgressView!
     @IBOutlet weak var progressLabel: UILabel!
     @IBOutlet weak var pauseButton: UIButton!

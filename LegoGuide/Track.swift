@@ -8,12 +8,12 @@
 
 class Track {
     var name: String?
-    var artist: String?
     var previewUrl: String?
+    var productid: String?
 
-    init(name: String?, artist: String?, previewUrl: String?) {
+    init(name: String?, previewUrl: String?, productid: String?) {
         self.name = name
-        self.artist = artist
         self.previewUrl = previewUrl
+        self.productid = productid
     }
 }
