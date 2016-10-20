@@ -119,6 +119,18 @@
                                     <outlet property="delegate" destination="dGf-6A-1OJ" id="iRe-jm-zBU"/>
                                 </connections>
                             </searchBar>
+                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Vzi-NH-qjz">
+                                <frame key="frameInset" height="44" maxY="504"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <items>
+                                    <barButtonItem title="回上頁" id="YVb-0y-fU7">
+                                        <connections>
+                                            <action selector="goBackSearchPage:" destination="dGf-6A-1OJ" id="MMP-ct-8TD"/>
+                                        </connections>
+                                    </barButtonItem>
+                                </items>
+                            </toolbar>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -139,9 +151,11 @@
                     </view>
                     <tabBarItem key="tabBarItem" systemItem="search" id="5Vg-sd-jiZ"/>
                     <connections>
+                        <outlet property="lastPageButton" destination="YVb-0y-fU7" id="hlQ-3i-7Mg"/>
                         <outlet property="pdfView" destination="omY-Ym-p11" id="Rxi-va-rsn"/>
                         <outlet property="searchBar" destination="cPG-2P-6A8" id="CyK-ev-cWw"/>
                         <outlet property="tableView" destination="gxa-dF-wgj" id="ne5-Q4-qZK"/>
+                        <outlet property="webToolBar" destination="Vzi-NH-qjz" id="vii-Y6-3So"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="MQo-rb-luQ" sceneMemberID="firstResponder"/>

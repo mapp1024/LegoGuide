@@ -21,8 +21,12 @@ class SearchViewController: UIViewController {
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var pdfView: UIWebView!
 
+    @IBOutlet weak var webToolBar: UIToolbar!
+    @IBOutlet weak var lastPageButton: UIBarButtonItem!
+    
+    
     var searchResults = [Track]()
-
+    
     lazy var tapRecognizer: UITapGestureRecognizer = {
         var recognizer = UITapGestureRecognizer(target:self, action: #selector(SearchViewController.dismissKeyboard))
         return recognizer
@@ -38,6 +42,7 @@ class SearchViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        webToolBar.isHidden = true
         
         tableView.tableFooterView = UIView()
         _ = self.downloadsSession
@@ -54,8 +59,6 @@ class SearchViewController: UIViewController {
         searchResults.removeAll()
         do {
             if let data = data, let response = try JSONSerialization.jsonObject(with: data, options:JSONSerialization.ReadingOptions(rawValue:0)) as? [String: AnyObject] {
-                
-                print("response products ==>",response["products"])
                 
                 // Get the results array
                 if let array: AnyObject = response["products"] {
@@ -196,27 +199,28 @@ class SearchViewController: UIViewController {
     //This method attempts to show the local pdf file (if it exists) when the call is tapped
     func showDownload(track: Track){
         if let urlString = track.previewUrl, let url = localFilePathForUrl(previewUrl: urlString) {
-            print("urlString ==>",urlString)
-            print("url  ==>",url)
-            let lastPathComponent = url.lastPathComponent
-            let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as NSString
-            let fullPath = documentsPath.appendingPathComponent(lastPathComponent)
-            print("2.lastPathComponent ==> ",lastPathComponent)
-            print("2.fullPath ==> ",fullPath)
+
+            //let lastPathComponent = url.lastPathComponent
+            //let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as NSString
+            //let fullPath = documentsPath.appendingPathComponent(lastPathComponent)
             
             let request = URLRequest(url: url)
-            print("request ==>",request)
-            
             pdfView.loadRequest(request)
             
+            webToolBar.isHidden = false
+            pdfView.isHidden = false
             super.view.bringSubview(toFront: pdfView)
             
-            
-            
-            
-
-            
         }
+    }
+    
+    
+    @IBAction func goBackSearchPage(_ sender: UIBarButtonItem) {
+        webToolBar.isHidden = true
+        pdfView.isHidden = true
+        let blankpage = URL( string: "about:blank" )
+        let request = URLRequest(url:blankpage!)
+        pdfView.loadRequest(request)
     }
 
     // MARK: Download helper methods
