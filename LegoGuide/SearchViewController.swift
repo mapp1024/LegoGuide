@@ -206,7 +206,7 @@ class SearchViewController: UIViewController {
             
             let request = URLRequest(url: url)
             pdfView.loadRequest(request)
-            
+            super.view.bringSubview(toFront: webToolBar)
             webToolBar.isHidden = false
             pdfView.isHidden = false
             super.view.bringSubview(toFront: pdfView)
