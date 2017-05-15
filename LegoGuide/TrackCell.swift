@@ -20,8 +20,9 @@ class TrackCell: UITableViewCell {
     var delegate: TrackCellDelegate?
 
     @IBOutlet weak var titleLabel: UILabel!
-
     @IBOutlet weak var productidLabel: UILabel!
+    @IBOutlet weak var productImage: UIImageView!
+    //var productImageUrl: String?
 
     @IBOutlet weak var progressView: UIProgressView!
     @IBOutlet weak var progressLabel: UILabel!
@@ -44,5 +45,6 @@ class TrackCell: UITableViewCell {
     @IBAction func downloadTapped(_ sender: Any) {
         delegate?.downloadTapped(cell: self)
     }
+
 
 }

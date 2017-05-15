@@ -10,10 +10,12 @@ class Track {
     var name: String?
     var previewUrl: String?
     var productid: String?
+    var imageUrl: String?
 
-    init(name: String?, previewUrl: String?, productid: String?) {
+    init(name: String?, previewUrl: String?, productid: String?, imageUrl: String?) {
         self.name = name
         self.previewUrl = previewUrl
         self.productid = productid
+        self.imageUrl = imageUrl
     }
 }

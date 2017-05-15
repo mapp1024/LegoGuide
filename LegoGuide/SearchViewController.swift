@@ -38,8 +38,8 @@ class SearchViewController: UIViewController {
         return session
     }()
 
+    
     // MARK: View controller methods
-
     override func viewDidLoad() {
         super.viewDidLoad()
         webToolBar.isHidden = true
@@ -58,51 +58,86 @@ class SearchViewController: UIViewController {
     func updateSearchResults(data: Data?) {
         searchResults.removeAll()
         do {
-            if let data = data, let response = try JSONSerialization.jsonObject(with: data, options:JSONSerialization.ReadingOptions(rawValue:0)) as? [String: AnyObject] {
-                
-                // Get the results array
-                if let array: AnyObject = response["products"] {
-                    for trackDictonary in array as! [AnyObject] {
-                        //if let trackDictonary = trackDictonary as? [String: AnyObject], let previewUrl = trackDictonary["previewUrl"] as? String {
-                        if let trackDictonary = trackDictonary as? [String: AnyObject], let productImage = trackDictonary["productImage"] as? String {
-
-                            // Parse the search result
-                            //let name = trackDictonary["trackName"] as? String
-                            //let artist = trackDictonary["artistName"] as? String
-                            //searchResults.append(Track(name: name, artist: artist, previewUrl: previewUrl))
-                            
-                            let name = trackDictonary["productName"] as? String
-                            let productid = trackDictonary["productId"] as? String
-                            let themeName = trackDictonary["themeName"] as? String
-                            let launchYear = trackDictonary["launchYear"] as? Int
-                            
+            var totalManualCount: Int?
+             if let data = data, let response = try JSONSerialization.jsonObject(with: data, options:JSONSerialization.ReadingOptions(rawValue:0)) as? [String: Any] {
+                if let array: Any = response["products"] {
+                    /* 先抓有幾筆說明書資料 */
+                    for trackDictonary in array as! [Any] {
+                        if let trackDictonary = trackDictonary as? [String: Any] {
                             let buildingInstructions : NSArray = (trackDictonary["buildingInstructions"] as! NSArray)
-                            
-                            print("name ==>",name)
-                            print("productid ==>",productid)
-                            print("productImage ==>",productImage)
-                            print("themeName ==>",themeName)
-                            print("launchYear ==>",launchYear)
-                            
-                            //let staticURL = "https://www.openssl.org/source/openssl-1.0.2j.tar.gz"
-                            //let staticURL = "http://www.pjsip.org/release/2.5.5/pjproject-2.5.5.zip"
-                            //let staticURL = "https://124.11.70.22/StarWars.tar.gz"
-                            for subDictonary in buildingInstructions as [AnyObject] {
-                                if let subDictonary = subDictonary as? [String: AnyObject], let pdfLocation = subDictonary["pdfLocation"] as? String {
-                                    let downloadSize = subDictonary["downloadSize"] as? String
-                                    print("pdfLocation ==>",pdfLocation)
-                                    print("downloadSize ==>",downloadSize)
-                                    //searchResults.append(Track(name: name, previewUrl: pdfLocation, productid: productid))
-                                    searchResults.append(Track(name: name, previewUrl: pdfLocation, productid: productid))
-
-                                }else{
-                                    print("subData NOT a dictonary")
-                                }
-                            }    
+                            totalManualCount = buildingInstructions.count
+                            for subDictonary in buildingInstructions as! [Any] {
+                                if let subDictonary = subDictonary as? [String: Any], let pdfLocation = subDictonary["pdfLocation"] as? String {
+                                    let description = subDictonary["description"] as? String
+                                    //擷取description內容，並以空白字元為分格符號{.components(separatedBy: " ")}，找出最後一碼為V29/V.29/v.29/v29
+                                    // http://stackoverflow.com/questions/32243963/filter-json-object-value
+                                    let filter_desc = description?.components(separatedBy: " ")
+                                    let search_reslut = (filter_desc?[(filter_desc?.count)!-1])!
+                                    if (search_reslut == "V39") { totalManualCount=totalManualCount!-1 }
+                                }else{ print("subData NOT a dictonary") }
+                            }
                         } else {
                             print("Not a dictionary")
                         }
                     }
+                    /* 先抓有幾筆說明書資料 END*/
+                    print("the end of totalManualCount ==> ",totalManualCount)
+                    /* parse JSON data */
+                    for trackDictonary in array as! [Any] {
+                        if let trackDictonary = trackDictonary as? [String: Any], let name = trackDictonary["productName"] as? String {
+                            let productid = trackDictonary["productId"] as? String
+                            let productImage = trackDictonary["productImage"] as? String
+                            
+                            if totalManualCount == 1
+                            {
+                                let productImage = trackDictonary["productImage"] as? String
+                                print("productImage ==> ",productImage)
+                            }else{ print("total Manual Count not eq 1 !") }
+                            
+                            let buildingInstructions : NSArray = (trackDictonary["buildingInstructions"] as! NSArray)
+                            for subDictonary in buildingInstructions as! [Any] {
+                                if let subDictonary = subDictonary as? [String: AnyObject], let pdfLocation = subDictonary["pdfLocation"] as? String {
+                                    
+                                    let description = subDictonary["description"] as? String
+                                    //擷取description內容，並以空白字元為分格符號{.components(separatedBy: " ")}，找出最後一碼為V29/V.29/v.29/v29
+                                    // http://stackoverflow.com/questions/32243963/filter-json-object-value
+                                    let filter_desc = description?.components(separatedBy: " ")
+                                    let search_reslut = (filter_desc?[(filter_desc?.count)!-1])!
+                                    if (search_reslut == "V39")
+                                    {
+                                        print ("Don't show V39 version manual!")
+                                    }else{
+                                        let pdfLocation = subDictonary["pdfLocation"] as? String
+                                        let downloadSize = subDictonary["downloadSize"] as? String
+                                        if totalManualCount! > 1
+                                        {
+                                            let productImage = subDictonary["frontpageInfo"] as? String
+                                            print("name  ==> ",name)
+                                            print("description ==> ",description)
+                                            print("pdfLocation ==> ",pdfLocation)
+                                            print("productImage ==> ",productImage)
+                                            
+                                            //searchResults.append(Track(name: name, previewUrl: pdfLocation, productid: productid, imageUrl: productImage))
+
+                                        } else { print("total Manual Count not > 1 !") }
+                                      searchResults.append(Track(name: name, previewUrl: pdfLocation, productid: productid, imageUrl: productImage))
+                                    
+
+                                        
+                                    }
+                                }else{ print("subData NOT a dictonary") }
+                            }
+                            /* parse JSON data  END*/
+                        } else {
+                            print("Not a dictionary")
+                        }
+                    }
+
+                    
+                    
+                    
+                    
+
                 } else {
                     print("Results key not found in dictionary")
                 }
@@ -121,7 +156,6 @@ class SearchViewController: UIViewController {
     }
 
     // MARK: Keyboard dismissal
-
     func dismissKeyboard() {
         searchBar.resignFirstResponder()
     }
@@ -230,12 +264,9 @@ class SearchViewController: UIViewController {
     // to the path of the app’s Documents directory.
     func localFilePathForUrl(previewUrl: String) -> URL? {
         let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] as NSString
-        print("documentsPath ==>",documentsPath )
         if let url = URL(string: previewUrl) {
             let lastPathComponent = url.lastPathComponent
             let fullPath = documentsPath.appendingPathComponent(lastPathComponent)
-            print("lastPathComponent ==> ",lastPathComponent)
-            print("fullPath ==> ",fullPath)
             return URL(fileURLWithPath:fullPath)
         }
 
@@ -364,7 +395,7 @@ extension SearchViewController: UISearchBarDelegate {
                 // 4
                 let url = URL(string: "https://wwwsecure.us.lego.com//service/biservice/search?fromIndex=0&locale=en-US&onlyAlternatives=false&prefixText=\(searchTerm)")
 
-                print(url)
+                
 
                 // 5
                 dataTask = defaultSession.dataTask(with: url!) {
@@ -451,14 +482,25 @@ extension SearchViewController: UITableViewDataSource {
 
         // Delegate cell button tap events to this view controller
         cell.delegate = self
-
+        
+        print("cell.productImage.frame.height ==> ",cell.productImage.frame.height)
+        print("cell.productImage.frame.width ==> ",cell.productImage.frame.width)
         let track = searchResults[indexPath.row]
 
         // Configure title and productid labels
         cell.titleLabel.text = track.name
-        
         cell.productidLabel.text = track.productid
-
+        
+        let productImageUrl = URL(string: track.imageUrl!)
+        let imageData = NSData(contentsOf: productImageUrl!)
+        //cell.productImage.image = ResizeImage(image: UIImage(data: imageData as! Data)!)
+        cell.productImage.image = UIImage(data: imageData as! Data)
+        //cell.productImage.contentMode = .scaleAspectFill
+        print("Image Height ==> ",cell.productImage.image?.size.height)
+        print("Image Width ==> ",cell.productImage.image?.size.width)
+        print("UIImageView Height ==> ", cell.productImage.frame.height)
+        print("UIImageView Width ==> ", cell.productImage.frame.width)
+        
         var showDownloadControls = false
         if let download = activeDownloads[track.previewUrl!] {
             showDownloadControls = true
@@ -481,6 +523,35 @@ extension SearchViewController: UITableViewDataSource {
         cell.cancelButton.isHidden = !showDownloadControls
 
         return cell
+    }
+
+    
+    // resize Image
+    //https://iosdevcenters.blogspot.com/2015/12/how-to-resize-image-in-swift-in-ios.html
+    func ResizeImage(image: UIImage) -> UIImage {
+        let size = image.size
+        
+        let widthRatio  = 80/image.size.width
+        let heightRatio = 80/image.size.height
+        
+        // Figure out what our orientation is, and use that to form the rectangle
+        var newSize: CGSize
+        if(widthRatio > heightRatio) {
+            newSize = CGSize(width: size.width*heightRatio, height: size.height*heightRatio)
+        } else {
+            newSize = CGSize(width: size.width*widthRatio, height: size.height*widthRatio)
+        }
+        
+        // This is the rect that we've calculated out and this is what is actually used below
+        let rect = CGRect(x:0, y:0, width: newSize.width, height: newSize.height)
+        
+        // Actually do the resizing to the rect using the ImageContext stuff
+        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+        image.draw(in: rect)
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return newImage!
     }
 
 }
